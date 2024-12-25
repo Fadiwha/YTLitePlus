@@ -6,9 +6,14 @@ name: Build and Release YTLitePlus
 on:
   workflow_dispatch:
     inputs:
+      sdk_mirror:
+        description: "SDK download link"
+        default: "https://github.com/theos/sdks"
+        required: true
+        type: string
       sdk_version:
         description: "iOS SDK Version"
-        default: "17.5"
+        default: "iPhoneOS16.5.sdk"
         required: true
         type: string
       decrypted_youtube_url:
@@ -87,13 +92,11 @@ jobs:
           key: ${{ env.cache-name }}
           restore-keys: ${{ env.cache-name }}
 
-      - name: Download iOS SDK
+      - name: Download iOS ${{ inputs.sdk_version }} SDK
         if: steps.SDK.outputs.cache-hit != 'true'
         run: |
-          # Only download the specific SDK version
-          git clone -n --depth=1 --filter=tree:0 https://github.com/aricloverALT/sdks/
-          cd sdks
-          git sparse-checkout set --no-cone iPhoneOS${{ inputs.sdk_version }}.sdk
+          git clone -n --depth=1 --filter=tree:0 ${{ inputs.sdk_mirror }} cd sdks
+          git sparse-checkout set --no-cone ${{ inputs.sdk_version }}
           git checkout
           mv *.sdk $THEOS/sdks
         env:
